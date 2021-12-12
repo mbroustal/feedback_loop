@@ -1,0 +1,160 @@
+% to study the kinetics of induction we will examine cases where the
+% initial protein concentration of zero.
+x1 = 0;
+tau = 135; %minutes
+
+tspan = [0 1400];
+
+%% Same steady state level:
+% we need x1ss = x2ss
+% we have x1ss = beta1/alpha, and x2ss = (sqrt(k² + 4k(beta2/alpha))-k)/2
+% we will adapt the value of beta2 to obtain x1ss = x2ss
+
+syms A beta1 beta2 k alpha;
+S = solve(beta1/alpha == (sqrt(k^2 + 4*k*(beta2/alpha))-k)/2, beta2);
+S;
+
+%% Simple transcription unit
+
+% for a simple transcription unit with a constant rate of production A1 =
+% Beta1
+beta1 = 2;
+A1 = beta1;
+alpha = log(2)/tau;
+
+
+[t, x] = ode23(@(t,x) A1-alpha*x, tspan, x1);
+plot(t,x,'-ob')
+hold on
+
+%% Negative autoregulation 
+
+k = 10^(-12);
+alpha = log(2)/tau;
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+A2 = beta2/(1+(x/k));
+
+
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-or')
+hold off
+xlabel('t')
+ylabel('Concentration en protéine')
+legend({'transcription simple', 'transcription auto-régulée'},'Location', 'southeast')
+
+
+
+%% Negative autoregulation: parameter k --> Solve
+%determination values
+% on cherche à déterminer les valeurs de k pour obtenir beta2/alpha = 10^-5k, 0.01
+% k, k, 100k, 10^6 k
+
+syms beta1 beta2 k alpha;
+Sa = solve((beta1*beta1 + alpha*k*beta1)/(alpha*alpha*k*k) == 10^(-5), k);
+Sb = solve((beta1*beta1 + alpha*k*beta1)/(alpha*alpha*k*k) == 10^(-2), k);
+Sc = solve((beta1*beta1 + alpha*k*beta1)/(alpha*alpha*k*k) == 1, k);
+Sd = solve((beta1*beta1 + alpha*k*beta1)/(alpha*alpha*k*k) == 10^(2), k);
+Se = solve((beta1*beta1 + alpha*k*beta1)/(alpha*alpha*k*k) == 10^(5), k);
+
+%Simple transcription (black)
+beta1 = 2;
+A1 = beta1;
+alpha = log(2)/tau;
+[t, x] = ode23(@(t,x) A1-alpha*x, tspan, x1);
+plot(t,x,'-k', 'LineWidth',2)
+hold on
+%Negative autoregulation (red and friends)
+
+alpha = log(2)/tau;
+
+
+k = (100*(500*beta1 + 10^(1/2)*25001^(1/2)*beta1))/alpha;
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-oy')
+hold on
+
+k = (10*(5*beta1 + 26^(1/2)*beta1))/alpha;
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#EDB120')
+hold on
+
+k = (beta1 + 5^(1/2)*beta1)/(2*alpha);
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#D95319')
+hold on
+
+k = (beta1 + 401^(1/2)*beta1)/(200*alpha);
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-or')
+hold on
+
+k = (beta1 + 400001^(1/2)*beta1)/(200000*alpha);
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#A2142F')
+hold off
+
+xlabel('t')
+ylabel('Concentration en protéine')
+legend({'transcription simple', 'k = 100000*(beta2/alpha)', 'k = 100*(beta2/alpha)', 'k = beta2/alpha',  'k = 0.01*(beta2/alpha)','k = 0.00001*(beta2/alpha)'}, 'Location', 'southeast')
+
+
+%% Taux de croissance alpha
+%Le taux de croissance est défini en fonction de t et de la concentration
+%précédente x
+tspan=[0 600];
+% for a simple transcription unit with a constant rate of production A1 =
+% Beta1
+beta1 = 2;
+k = 0.001;
+
+alpha = log(2)/tau;
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-og')
+hold on 
+
+alpha = 0.01;
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#EDB120')
+hold on 
+
+alpha = 0.001;
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#77AC30')
+
+hold off
+xlabel('t')
+ylabel('Concentration en protéine')
+legend({'alpha0', 'alpha > alpha0', 'alpha < alpha0'}, 'Location', 'east')
+
+%% Taux de production selon promoteur beta
+
+beta1 = 2;
+k = 0.001;
+alpha = log(2)/tau;
+
+beta2=(beta1^2 + alpha*k*beta1)/(alpha*k);
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#4DBEEE')
+hold on 
+
+beta2=10^5;
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#0072BD')
+hold on 
+
+beta2=10^7;
+[t, x] = ode23(@(t,x) beta2/(1+(x/k))-alpha*x, tspan, x1);
+plot(t,x,'-o', 'Color', '#7E2F8E')
+
+hold off
+xlabel('t')
+ylabel('Concentration en protéine')
+legend({'beta0', 'beta < beta0', 'beta > beta0'}, 'Location', 'east')
